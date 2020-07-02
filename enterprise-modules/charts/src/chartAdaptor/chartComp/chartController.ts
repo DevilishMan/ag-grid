@@ -14,7 +14,7 @@ import {
     GetChartImageDataUrlParams,
 } from "@ag-grid-community/core";
 import { ChartDataModel, ColState } from "./chartDataModel";
-import { ChartPalette, ChartPaletteName, palettes } from "ag-charts-community";
+import { ChartPalette, ChartPaletteName, ChartThemeName, palettes } from "ag-charts-community";
 import { ChartProxy } from "./chartProxies/chartProxy";
 
 export interface ChartModelUpdatedEvent extends AgEvent {
@@ -30,11 +30,17 @@ export class ChartController extends BeanStub {
 
     private chartProxy: ChartProxy<any, any>;
     private chartPaletteName: ChartPaletteName;
+    private chartThemeName: ChartThemeName;
 
-    public constructor(private readonly model: ChartDataModel, paletteName: ChartPaletteName = 'borneo') {
+    private static lightThemes: ChartThemeName[] = ['light', 'material-light', 'pastel-light', 'solar-light', 'vivid-light'];
+    private static darkThemes: ChartThemeName[] = ['dark', 'material-dark', 'pastel-dark', 'solar-dark', 'vivid-dark'];
+    private static themes: ChartThemeName[] = ChartController.lightThemes;
+
+    public constructor(private readonly model: ChartDataModel, paletteName: ChartPaletteName = 'borneo', themeName: ChartThemeName = 'light') {
         super();
 
         this.chartPaletteName = paletteName;
+        this.chartThemeName = themeName;
     }
 
     @PostConstruct
@@ -107,6 +113,14 @@ export class ChartController extends BeanStub {
 
     public getPaletteName(): ChartPaletteName {
         return this.chartPaletteName;
+    }
+
+    public getThemeName(): ChartThemeName {
+        return this.chartThemeName;
+    }
+
+    public getThemes(): ChartThemeName[] {
+        return ChartController.themes;
     }
 
     public getPalettes(): Map<ChartPaletteName | undefined, ChartPalette> {

@@ -32,7 +32,7 @@ import { PieChartProxy } from "./chartProxies/polar/pieChartProxy";
 import { DoughnutChartProxy } from "./chartProxies/polar/doughnutChartProxy";
 import { ScatterChartProxy } from "./chartProxies/cartesian/scatterChartProxy";
 import { HistogramChartProxy } from "./chartProxies/cartesian/histogramChartProxy";
-import { ChartPaletteName } from "ag-charts-community";
+import { ChartPaletteName, ChartThemeName } from "ag-charts-community";
 import { ChartTranslator } from "./chartTranslator";
 
 export interface GridChartParams {
@@ -40,6 +40,7 @@ export interface GridChartParams {
     cellRange: CellRange;
     chartType: ChartType;
     chartPaletteName: ChartPaletteName;
+    chartThemeName: ChartThemeName;
     insideDialog: boolean;
     suppressChartRanges: boolean;
     aggFunc?: string | IAggFunc;
@@ -98,7 +99,7 @@ export class GridChartComp extends Component {
         _.addCssClass(this.getGui(), isRtl ? 'ag-rtl' : 'ag-ltr');
 
         this.model = this.createBean(new ChartDataModel(modelParams));
-        this.chartController = this.createManagedBean(new ChartController(this.model, this.params.chartPaletteName));
+        this.chartController = this.createManagedBean(new ChartController(this.model, this.params.chartPaletteName, this.params.chartThemeName));
 
         // create chart before dialog to ensure dialog is correct size
         this.createChart();
@@ -143,6 +144,7 @@ export class GridChartComp extends Component {
             chartType,
             processChartOptions: processChartOptionsFunc,
             getChartPaletteName: this.getChartPaletteName.bind(this),
+            getChartThemeName: this.getChartThemeName.bind(this),
             allowPaletteOverride: !this.params.chartPaletteName,
             isDarkTheme: this.environment.isThemeDark.bind(this.environment),
             parentElement: this.eChart,
@@ -166,6 +168,10 @@ export class GridChartComp extends Component {
 
     private getChartPaletteName(): ChartPaletteName {
         return this.chartController.getPaletteName();
+    }
+
+    private getChartThemeName(): ChartThemeName {
+        return this.chartController.getThemeName();
     }
 
     private createChartProxy(chartProxyParams: ChartProxyParams): ChartProxy<any, any> {

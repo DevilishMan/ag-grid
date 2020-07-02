@@ -7,7 +7,7 @@ import {
     RefSelector
 } from "@ag-grid-community/core";
 import { MiniChartsContainer } from "./miniChartsContainer";
-import { ChartPalette, ChartPaletteName } from "ag-charts-community";
+import { ChartPalette, ChartPaletteName, ChartThemeName } from "ag-charts-community";
 import { ChartController } from "../../chartController";
 
 type AnimationDirection = 'left' | 'right';
@@ -42,8 +42,11 @@ export class ChartSettingsPanel extends Component {
     private readonly chartController: ChartController;
 
     private activePalette?: ChartPaletteName;
+    private activeTheme?: ChartThemeName;
     private palettes: Map<ChartPaletteName | undefined, ChartPalette>;
+    private themes: ChartThemeName[];
     private paletteNames: (ChartPaletteName | undefined)[];
+    private themeNames: (ChartThemeName | undefined)[];
 
     private isAnimating: boolean;
 
@@ -56,6 +59,7 @@ export class ChartSettingsPanel extends Component {
     @PostConstruct
     private postConstruct() {
         this.resetPalettes();
+        this.resetThemes();
 
         this.ePrevBtn.insertAdjacentElement('afterbegin', _.createIconNoSpan('previous', this.gridOptionsWrapper));
         this.eNextBtn.insertAdjacentElement('afterbegin', _.createIconNoSpan('next', this.gridOptionsWrapper));
@@ -63,6 +67,55 @@ export class ChartSettingsPanel extends Component {
         this.addManagedListener(this.ePrevBtn, 'click', this.prev.bind(this));
         this.addManagedListener(this.eNextBtn, 'click', this.next.bind(this));
         this.addManagedListener(this.chartController, ChartController.EVENT_CHART_UPDATED, this.resetPalettes.bind(this));
+    }
+
+    private resetThemes(): void {
+        const themes = this.chartController.getThemes();
+
+        if (themes === this.themes) {
+            return;
+        }
+
+        this.themes = themes;
+        this.activeTheme = this.chartController.getThemeName();
+
+        if (this.themes.indexOf(this.activeTheme) < 0) {
+            this.activeTheme = undefined;
+        }
+
+        this.themeNames = [];
+        this.cardItems = [];
+
+        _.clearElement(this.eCardSelector);
+
+        this.destroyMiniCharts();
+
+        this.themes.forEach((theme, name) => {
+            // if (!this.activePalette) {
+            //     this.activePalette = name;
+            // }
+            //
+            // this.paletteNames.push(name);
+            //
+            // const isActivePalette = this.activePalette === name;
+            // const { fills, strokes } = palette;
+            // const miniChartsContainer = this.createBean(new MiniChartsContainer(this.chartController, fills, strokes));
+            //
+            // this.miniCharts.push(miniChartsContainer);
+            // this.eMiniChartsContainer.appendChild(miniChartsContainer.getGui());
+            // this.addCardLink(name);
+            //
+            // if (isActivePalette) {
+            //     miniChartsContainer.refreshSelected();
+            // } else {
+            //     _.addCssClass(miniChartsContainer.getGui(), 'ag-hidden');
+            // }
+        });
+
+        _.addOrRemoveCssClass(this.eNavBar, 'ag-hidden', this.palettes.size <= 1);
+
+        const paletteIndex = this.paletteNames.indexOf(this.activePalette);
+        _.radioCssClass(this.cardItems[paletteIndex], 'ag-selected', 'ag-not-selected');
     }
 
     private resetPalettes(): void {
@@ -166,6 +219,44 @@ export class ChartSettingsPanel extends Component {
         }
 
         this.setActivePalette(this.paletteNames[this.getNext()], 'right');
+    }
+
+    private  setActiveTheme(themeName: ChartThemeName, animationDirection: AnimationDirection) {
+        const paletteIndex = this.themeNames.indexOf(themeName);
+
+        _.radioCssClass(this.cardItems[paletteIndex], 'ag-selected', 'ag-not-selected');
+
+        const currentPalette = this.miniCharts[this.paletteNames.indexOf(this.activePalette)];
+        const currentGui = currentPalette.getGui();
+        const futurePalette = this.miniCharts[paletteIndex];
+        const futureGui = futurePalette.getGui();
+
+        currentPalette.refreshSelected();
+        futurePalette.refreshSelected();
+
+        const multiplier = animationDirection === 'left' ? -1 : 1;
+        const final = futureGui.style.left = `${(_.getAbsoluteWidth(this.getGui()) * multiplier)}px`;
+        _.removeCssClass(futureGui, 'ag-hidden');
+
+        _.addCssClass(currentGui, 'ag-animating');
+        _.addCssClass(futureGui, 'ag-animating');
+
+        // this.activePalette = paletteName;
+        this.chartController.setChartPaletteName(this.activePalette);
+
+        this.isAnimating = true;
+
+        window.setTimeout(() => {
+            currentGui.style.left = `${parseFloat(final) * -1}px`;
+            futureGui.style.left = '0px';
+        }, 50);
+
+        window.setTimeout(() => {
+            this.isAnimating = false;
+            _.removeCssClass(currentGui, 'ag-animating');
+            _.removeCssClass(futureGui, 'ag-animating');
+            _.addCssClass(currentGui, 'ag-hidden');
+        }, 500);
     }
 
     private setActivePalette(paletteName: ChartPaletteName, animationDirection: AnimationDirection) {

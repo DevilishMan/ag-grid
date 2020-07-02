@@ -1,12 +1,9 @@
 import { Chart } from "./chart";
 import { Series } from "./series/series";
 import { ChartAxis } from "./chartAxis";
-import { find } from "../util/array";
 import { LegendMarker } from "./legend";
-import { ChartTheme, ChartPalette, IChartTheme } from "./themes/chartTheme";
+import { ChartTheme, IChartTheme } from "./themes/chartTheme";
 import { DarkTheme } from './themes/darkTheme';
-import { getValue } from "../util/object";
-import mappings from './chartMappings';
 import { MaterialLight } from "./themes/materialLight";
 import { MaterialDark } from "./themes/materialDark";
 import { PastelLight } from "./themes/pastelLight";
@@ -15,11 +12,18 @@ import { SolarLight } from "./themes/solarLight";
 import { SolarDark } from "./themes/solarDark";
 import { VividLight } from "./themes/vividLight";
 import { VividDark } from "./themes/vividDark";
+import { find } from "../util/array";
+import { getValue } from "../util/object";
+import mappings from './chartMappings';
 
-const lightTheme = new ChartTheme();
-const themes = {
-    default: lightTheme,
-    light: lightTheme,
+export type ChartThemeName = 'default'
+    | 'light' | 'material-light' | 'pastel-light' | 'solar-light' | 'vivid-light'
+    | 'dark' | 'material-dark' | 'pastel-dark' | 'solar-dark' | 'vivid-dark';
+
+const defaultTheme = new ChartTheme();
+const themes: { [key in ChartThemeName]: ChartTheme } = {
+    default: defaultTheme,
+    light: defaultTheme,
     dark: new DarkTheme(),
     'material-light': new MaterialLight(),
     'material-dark': new MaterialDark(),
@@ -29,16 +33,16 @@ const themes = {
     'solar-dark': new SolarDark(),
     'vivid-light': new VividLight(),
     'vivid-dark': new VividDark()
-} as any;
+};
 
-function getTheme(value: string | ChartTheme | IChartTheme): ChartTheme {
+function getTheme(value: ChartThemeName | ChartTheme | IChartTheme): ChartTheme {
     if (typeof value === 'string') {
         return themes[value] || themes.default;
     }
     if (value instanceof ChartTheme) {
         return value;
     }
-    if (value && (value.defaults || value.palette)) {
+    if ((value && (value.defaults || value.palette))) {
         const baseTheme: any = getTheme(value.baseTheme);
         return new baseTheme.constructor(value);
     }
@@ -66,7 +70,6 @@ export abstract class AgChart {
                 theme.updateChart(chart);
             }
         }
-        // console.log(JSON.stringify(flattenObject(options), null, 4));
         return chart;
     }
 
@@ -90,8 +93,6 @@ export abstract class AgChart {
             }
         }
     }
-
-    static createComponent = create;
 }
 
 const pathToSeriesTypeMap: { [key in string]: string } = {

@@ -26,7 +26,7 @@ import {
     DropShadow,
     Padding,
     palettes,
-    PieSeries
+    PieSeries, ChartThemeName
 } from "ag-charts-community";
 
 export interface ChartProxyParams {
@@ -39,6 +39,7 @@ export interface ChartProxyParams {
     document: Document;
     processChartOptions: (params: ProcessChartOptionsParams) => ChartOptions<SeriesOptions>;
     getChartPaletteName: () => ChartPaletteName;
+    getChartThemeName: () => ChartThemeName;
     allowPaletteOverride: boolean;
     isDarkTheme: () => boolean;
     eventService: EventService;

@@ -1,6 +1,7 @@
 import { deepMerge, getValue } from "../../util/object";
 import { copy } from "../../util/array";
 import { Chart } from "../chart";
+import { ChartThemeName } from "../agChart";
 
 export interface ChartPalette {
     fills: string[];
@@ -8,7 +9,7 @@ export interface ChartPalette {
 }
 
 export interface IChartTheme {
-    baseTheme?: string | ChartTheme;
+    baseTheme?: ChartThemeName | ChartTheme;
     palette: ChartPalette;
     defaults: any;
 }
